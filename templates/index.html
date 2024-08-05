@@ -33,24 +33,24 @@
             </div>
             {% endfor %}
         </section>
-		<section class="recent-purchases">
+        <section class="recent-purchases">
             <h2>Recent Purchases</h2>
             {% if recent_purchases %}
             <div>
                 {% for transaction in recent_purchases %}
                 <div style="display: flex;background-color: slateblue;padding: 10px;border-radius: 10px;">
-					<div style="padding-right: 10px;">
-					    <img src="https://api.mineatar.io/face/{{ transaction.uuid }}?scale=8" alt="User Icon" class="user-icon">
-					</div>
-					<div style="display: inline-grid;">
-						<strong>{{ transaction.username }}</strong> bought:
-						{% for item in transaction['items'] %}
-						{{ item.name }} - ${{ item.price }}
-						{% endfor %}
-						<small>on {{ transaction['timestamp'].strftime('%m-%d-%Y') }}</small>
-					</div>
-				</div>
-				<br>
+                    <div style="padding-right: 10px;">
+                        <img src="https://api.mineatar.io/face/{{ transaction.uuid }}?scale=8" alt="User Icon" class="user-icon">
+                    </div>
+                    <div style="display: inline-grid;">
+                        <strong>{{ transaction.username }}</strong> bought:
+                        {% for item in transaction['items'] %}
+                        {{ item.name }} - ${{ item.price }}
+                        {% endfor %}
+                        <small>on {{ transaction['timestamp'].strftime('%m-%d-%Y') }}</small>
+                    </div>
+                </div>
+                <br>
                 {% endfor %}
             </div>
             {% else %}
@@ -85,12 +85,29 @@
         </div>
     </div>
 
+    <!-- Modal for refund policy -->
+    <div id="refundModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Refund Policy Notice</h2>
+            <p>Please be advised that all purchases are final. We do not offer refunds for digital items once they have been delivered. By proceeding with your purchase, you acknowledge and accept this policy. Thank you for your understanding and support.</p>
+            <button id="acceptButton" class="button">Accept</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const itemModal = document.getElementById("itemModal");
             const messageModal = document.getElementById("messageModal");
+            const refundModal = document.getElementById("refundModal");
             const closeModalButtons = document.querySelectorAll(".close");
             const messageClose = document.getElementById("messageClose");
+            const acceptButton = document.getElementById("acceptButton");
+
+            // Show refund policy modal if not seen before
+            if (!sessionStorage.getItem('refundModalShown')) {
+                refundModal.style.display = "block";
+            }
 
             // Open item modal with item details
             document.querySelectorAll('.item-card').forEach(card => {
@@ -111,28 +128,28 @@
 
             // Add to cart button click event in modal
             document.getElementById('addToCartButton').addEventListener('click', function(event) {
-				event.preventDefault();
-				const itemId = this.getAttribute('data-id');
+                event.preventDefault();
+                const itemId = this.getAttribute('data-id');
 
-				fetch(`/add_to_cart/${itemId}`)
-					.then(response => {
-						if (!response.ok) {
-							throw new Error(`Server error: ${response.status}`);
-						}
-						return response.json();
-					})
-					.then(data => {
-						if (data.success) {
-							showModal('Success', 'Item added to cart!');
-						} else {
-							showModal('Notice', data.message || 'Failed to add item to cart.');
-						}
-					})
-					.catch(error => {
-						console.error('Error adding item to cart:', error);
-						showModal('Error', 'An error occurred while adding the item to the cart.');
-					});
-			});
+                fetch(`/add_to_cart/${itemId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showModal('Success', 'Item added to cart!');
+                        } else {
+                            showModal('Notice', data.message || 'Failed to add item to cart.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding item to cart:', error);
+                        showModal('Error', 'An error occurred while adding the item to the cart.');
+                    });
+            });
 
             // Show message modal
             function showModal(title, message) {
@@ -146,6 +163,7 @@
                 button.addEventListener('click', function() {
                     itemModal.style.display = "none";
                     messageModal.style.display = "none";
+                    refundModal.style.display = "none";
                 });
             });
 
@@ -153,11 +171,18 @@
                 messageModal.style.display = "none";
             });
 
+            acceptButton.addEventListener('click', function() {
+                refundModal.style.display = "none";
+                sessionStorage.setItem('refundModalShown', 'true'); // Mark modal as shown
+            });
+
             window.addEventListener('click', function(event) {
                 if (event.target === itemModal) {
                     itemModal.style.display = "none";
                 } else if (event.target === messageModal) {
                     messageModal.style.display = "none";
+                } else if (event.target === refundModal) {
+                    refundModal.style.display = "none";
                 }
             });
         });
