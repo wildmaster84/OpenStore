@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Bans</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Admin Panel</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_items') }}" class="sidebar-link">Manage Items</a></li>
+                    <li><a href="{{ url_for('admin_transactions') }}" class="sidebar-link">Manage Transactions</a></li>
+                    <li><a href="{{ url_for('admin_logout') }}" class="sidebar-link">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <section class="dashboard-section">
+                <h2>Ban User</h2>
+                <form id="banUserForm" class="admin-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <button type="submit" class="button">Ban User</button>
+                </form>
+                <h3>Banned Users</h3>
+                <ul class="banned-list">
+                    {% for user in bans %}
+                    <li>{{ user }} <button class="unban-user button" data-username="{{ user }}">Unban</button></li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for alerts and input -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button id="modalClose" class="button">Close</button>
+                <button id="modalConfirm" class="button" style="display:none;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        const modal = $('#alertModal');
+        const modalTitle = $('#modalTitle');
+        const modalMessage = $('#modalMessage');
+        const modalConfirm = $('#modalConfirm');
+        const modalClose = $('#modalClose');
+        const closeModal = $('.close');
+        let shouldReload = false; // Flag to determine if the page should reload
+
+        function showModal(title, message, showConfirm = false, reload = false, callback = null) {
+		    shouldReload = reload;
+            modalTitle.text(title);
+            modalMessage.text(message);
+            modalConfirm.toggle(showConfirm);
+            modalConfirm.off('click').on('click', function() {
+                if (callback) callback();
+                closeModal.click();
+            });
+            modal.show();
+        }
+
+        closeModal.on('click', function() {
+            modal.hide();
+            if (shouldReload) {
+                location.reload();
+            }
+        });
+
+        modalClose.on('click', function() {
+            modal.hide();
+            if (shouldReload) {
+                location.reload();
+            }
+        });
+
+        window.onclick = function(event) {
+            if (event.target == modal[0]) {
+                modal.hide();
+            }
+        };
+
+        // Handle ban user form submission
+        $('#banUserForm').on('submit', function(e) {
+            e.preventDefault();
+            const username = $(this).find('input[name="username"]').val();
+            $.ajax({
+                type: 'POST',
+                url: '/admin/ban_user',
+                data: { username: username },
+                success: function(response) {
+                    showModal('Success', response.message, false, true);
+                    shouldReload = true;
+                },
+                error: function() {
+                    showModal('Error', 'An error occurred while banning the user.', false);
+                }
+            });
+        });
+
+        // Handle unban user
+        $('.unban-user').on('click', function() {
+            const username = $(this).data('username');
+            showModal('Confirm Unban', `Are you sure you want to unban ${username}?`, true, false, function() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/admin/unban_user',
+                    data: { username: username },
+                    success: function(response) {
+                        showModal('Success', response.message, false, true);
+                    },
+                    error: function() {
+                        showModal('Error', 'An error occurred while unbanning the user.', false);
+                    }
+                });
+            });
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Foreverplay Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Minecraft Store</h1>
+        <nav>
+            <a href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> View Cart</a>
+            <a href="{{ url_for('user_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </header>
+    <main>
+        <aside class="categories">
+            <h2>Categories</h2>
+            <ul>
+                <li><a href="{{ url_for('index') }}">All Items</a></li>
+                {% for category in categories %}
+                <li><a href="{{ url_for('index', category=category) }}">{{ category }}</a></li>
+                {% endfor %}
+            </ul>
+        </aside>
+        <section class="items">
+            {% for item in items %}
+            <div class="item-card" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-description="{{ item.description|safe }}">
+                <img src="{{ item.image }}" alt="{{ item.name }} image" class="item-image">
+                <h2>{{ item.name }}</h2>
+                <p>${{ item.price }}</p>
+            </div>
+            {% endfor %}
+        </section>
+		<section class="recent-purchases">
+            <h2>Recent Purchases</h2>
+            {% if recent_purchases %}
+            <div>
+                {% for transaction in recent_purchases %}
+                <div style="display: flex;background-color: slateblue;padding: 10px;border-radius: 10px;">
+					<div style="padding-right: 10px;">
+					    <img src="https://api.mineatar.io/face/{{ transaction.uuid }}?scale=8" alt="User Icon" class="user-icon">
+					</div>
+					<div style="display: inline-grid;">
+						<strong>{{ transaction.username }}</strong> bought:
+						{% for item in transaction['items'] %}
+						{{ item.name }} - ${{ item.price }}
+						{% endfor %}
+						<small>on {{ transaction['timestamp'].strftime('%m-%d-%Y') }}</small>
+					</div>
+				</div>
+				<br>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No recent purchases.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Minecraft Store</p>
+    </footer>
+
+    <!-- Modal for item details -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalItemName"></h2>
+            <p id="modalItemPrice"></p>
+            <div id="modalItemDescription"></div>
+            <a id="addToCartButton" href="#" class="button">Add to Cart</a>
+        </div>
+    </div>
+
+    <!-- Modal for messages -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="messageTitle">Notification</h2>
+            <p id="messageContent"></p>
+            <div class="modal-buttons">
+                <button id="messageClose" class="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const itemModal = document.getElementById("itemModal");
+            const messageModal = document.getElementById("messageModal");
+            const closeModalButtons = document.querySelectorAll(".close");
+            const messageClose = document.getElementById("messageClose");
+
+            // Open item modal with item details
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const itemName = this.dataset.name;
+                    const itemPrice = this.dataset.price;
+                    const itemDescription = this.dataset.description;
+                    const itemId = this.dataset.id;
+
+                    document.getElementById('modalItemName').innerText = itemName;
+                    document.getElementById('modalItemPrice').innerText = `$${itemPrice}`;
+                    document.getElementById('modalItemDescription').innerHTML = itemDescription;
+                    document.getElementById('addToCartButton').setAttribute('data-id', itemId);
+
+                    itemModal.style.display = "block";
+                });
+            });
+
+            // Add to cart button click event in modal
+            document.getElementById('addToCartButton').addEventListener('click', function(event) {
+				event.preventDefault();
+				const itemId = this.getAttribute('data-id');
+
+				fetch(`/add_to_cart/${itemId}`)
+					.then(response => {
+						if (!response.ok) {
+							throw new Error(`Server error: ${response.status}`);
+						}
+						return response.json();
+					})
+					.then(data => {
+						if (data.success) {
+							showModal('Success', 'Item added to cart!');
+						} else {
+							showModal('Notice', data.message || 'Failed to add item to cart.');
+						}
+					})
+					.catch(error => {
+						console.error('Error adding item to cart:', error);
+						showModal('Error', 'An error occurred while adding the item to the cart.');
+					});
+			});
+
+            // Show message modal
+            function showModal(title, message) {
+                document.getElementById('messageTitle').innerText = title;
+                document.getElementById('messageContent').innerText = message;
+                messageModal.style.display = "block";
+            }
+
+            // Close modals
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    itemModal.style.display = "none";
+                    messageModal.style.display = "none";
+                });
+            });
+
+            messageClose.addEventListener('click', function() {
+                messageModal.style.display = "none";
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === itemModal) {
+                    itemModal.style.display = "none";
+                } else if (event.target === messageModal) {
+                    messageModal.style.display = "none";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

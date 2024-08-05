@@ -1,0 +1,13 @@
+api:
+  base_url: "https://your.api.base.url"
+  tokens: # Add your valid tokens here
+    - "your-secret-token-1"
+    - "your-secret-token-2"
+account:
+  username: "admin"
+  password: "password"
+  
+paypal:
+  mode: "sandbox" # sandbox / live
+  client_id: "YOURE_CLIENT_ID"
+  client_secret: "YOURE_CLIENT_SECRET"

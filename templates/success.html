@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Success</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Purchase Successful</h1>
+    </header>
+    <main>
+        <p>Thank you for your purchase!</p>
+        <a class="button" href="{{ url_for('index') }}">Return to Store</a>
+    </main>
+    <footer>
+        <p>&copy; 2024 Minecraft Store</p>
+    </footer>
+</body>
+</html>

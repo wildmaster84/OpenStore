@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Admin Panel</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('admin_items') }}" class="sidebar-link">Manage Items</a></li>
+                    <li><a href="{{ url_for('admin_transactions') }}" class="sidebar-link">Manage Transactions</a></li>
+                    <li><a href="{{ url_for('admin_bans') }}" class="sidebar-link">Manage Bans</a></li>
+					<li><a href="{{ url_for('template_editor_page') }}" class="sidebar-link">Edit Pages</a></li>
+                    <li><a href="{{ url_for('admin_logout') }}" class="sidebar-link">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <section class="dashboard-section">
+                <h2>Dashboard Overview</h2>
+                <div class="cards">
+                    <div class="card">
+                        <h3>Total Sales</h3>
+                        <p>${{ transactions | sum(attribute='amount') }}</p>
+                    </div>
+                    <div class="card">
+                        <h3>Total Transactions</h3>
+                        <p>{{ transactions | length }}</p>
+                    </div>
+                    <div class="card">
+                        <h3>Banned Users</h3>
+                        <p>{{ bans | length }}</p>
+                    </div>
+                </div>
+				<div class="chart-container">
+                    <canvas class="chart" id="salesChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+	<script>
+        $(document).ready(function() {
+            const salesData = {{ sales_data | tojson }};
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: salesData.labels,
+                    datasets: [{
+                        label: 'Sales Over Time',
+                        data: salesData.values,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

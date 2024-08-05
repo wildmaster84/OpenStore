@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <main class="content">
+            <section class="dashboard-section">
+                <h2>Your Shopping Cart</h2>
+                {% if cart and cart|length > 0 %}
+                <table class="styled-table" style="text-align-last: center;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item_id, quantity in cart.items() %}
+                        {% set item = items_dict[item_id|int] %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>{{ quantity }}</td>
+                            <td>${{ item.price * quantity }}</td>
+                            <td>
+                                <button class="remove-one button" data-id="{{ item.id }}">Remove One</button>
+                                <button class="remove-all button" data-id="{{ item.id }}">Remove All</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button id="checkout" class="button">Proceed to Checkout</button>
+                {% else %}
+                <p>Your cart is empty. <a href="{{ url_for('index') }}">Continue shopping</a></p>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        // Handle remove one from cart
+        $('.remove-one').on('click', function() {
+            const itemId = $(this).data('id');
+            $.ajax({
+                type: 'GET',
+                url: `/remove_one_from_cart/${itemId}`,
+                success: function() {
+                    location.reload();
+                },
+                error: function() {
+                    alert('An error occurred while removing one item from the cart.');
+                }
+            });
+        });
+
+        // Handle remove all from cart
+        $('.remove-all').on('click', function() {
+            const itemId = $(this).data('id');
+            $.ajax({
+                type: 'GET',
+                url: `/remove_from_cart/${itemId}`,
+                success: function() {
+                    location.reload();
+                },
+                error: function() {
+                    alert('An error occurred while removing the item from the cart.');
+                }
+            });
+        });
+
+        // Handle checkout
+        $('#checkout').on('click', function() {
+            $.ajax({
+                type: 'POST',
+                url: '/checkout',
+                success: function() {
+                    window.location.href = '/payment/success';
+                },
+                error: function() {
+                    alert('An error occurred while processing your checkout.');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ item.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>{{ item.name }}</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Back to Store</a>
+            <a href="{{ url_for('cart') }}">View Cart</a>
+        </nav>
+    </header>
+    <main>
+        <div class="item-detail">
+            <h2>${{ item.price }}</h2>
+            <p>{{ item.description }}</p>
+            <a class="button" href="{{ url_for('add_to_cart', item_id=item.id) }}">Add to Cart</a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Minecraft Store</p>
+    </footer>
+</body>
+</html>

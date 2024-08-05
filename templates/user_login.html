@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Minecraft Store</h1>
+    </header>
+    <main class="centered">
+        <form method="POST" action="{{ url_for('user_login') }}" class="admin-form">
+            <div class="form-group">
+                <label for="username">Enter Your Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <button type="submit" class="button">Enter Store</button>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="messages">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="place-content: center;">
+    <div class="login-container" style="text-align-last: center;">
+        <h2>Admin Login</h2>
+        <form action="{{ url_for('admin_login') }}" method="post" class="admin-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit" class="button">Login</button>
+        </form>
+    </div>
+</body>
+</html>
