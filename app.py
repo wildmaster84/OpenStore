@@ -109,9 +109,8 @@ def admin_login_required(f):
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
+        token = request.headers.get('Authorization').replace('Bearer ', '')
         valid_tokens = config['api']['tokens']
-
         if not token or token not in valid_tokens:
             return jsonify(success=False, message="Token is missing or invalid"), 401
 
@@ -413,6 +412,7 @@ def edit_item(item_id):
             item['purchase_limit'] = float(request.form.get('limit'))
             item['category'] = request.form.get('category')
             item['description'] = request.form.get('description')
+            item['command'] = request.form.get('command')
             item['image'] = request.form.get('image')
             save_items()  # Save items after editing
             return jsonify(success=True, message=f'Item {item["name"]} updated successfully!')
@@ -456,7 +456,7 @@ def add_transaction():
     selected_items = request.form.getlist('items[]')
 
     # Find items by name and get their details
-    items = [{"name": item["name"], "price": item["price"]} for item in ITEMS if item["name"] in selected_items]
+    items = [{"name": item["name"], "price": item["price"], "command": item["command"]} for item in ITEMS if item["name"] in selected_items]
 
     transaction = {
         "transaction_id": generate_transaction_id(),
@@ -604,6 +604,7 @@ def get_transaction_details(transaction_id):
         return jsonify({
             "transaction_id": transaction['transaction_id'],
             "username": transaction['username'],
+            "uuid": transaction['uuid'],
             "items": transaction['items'],
             "timestamp": transaction['timestamp'].isoformat()
         })
@@ -632,4 +633,4 @@ if __name__ == '__main__':
     load_items()
     load_transactions()
     load_bans()
-    app.run(debug=False)
+    app.run(host='0.0.0.0', port=5000, threaded=True, debug=False)
